@@ -1,56 +1,34 @@
 var webpack = require("webpack");
-var HtmlWebpackPlugin = require("html-webpack-plugin");
+var webpackMerge = require("webpack-merge");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var commonConfig = require("./webpack.common.js");
 var helpers = require("./helpers");
 
-module.exports = {
-	entry: {
-		"polyfills": helpers.root("src") + "/polyfills.ts",
-		"vendor": helpers.root("src") + "/vendor.ts",
-		"app": helpers.root("src") + "/main.ts",
-		"css": helpers.root("src") + "/app.css"
-	},
+const ENV = process.env.NODE_ENV = process.env.ENV = "production";
 
-	resolve: {
-		extensions: [".ts", ".js"]
-	},
+module.exports = webpackMerge(commonConfig, {
+	devtool: "source-map",
 
-	module: {
-		rules: [
-			{
-				test: /\.(html|php)$/,
-				loader: "html-loader"
-			},
-			{
-				test: /\.(png|jpe?g|gif|svg|woff|woff2|ttf|eot|ico)$/,
-				loader: "file-loader?name=/assets/[name].[hash].[ext]"
-			},
-			{
-				test: /\.css$/,
-				loader: ExtractTextPlugin.extract({ fallbackLoader: "style-loader", loader: "css-loader?minimize=true" })
-			},
-			{
-				test: /\.ts$/,
-				loaders: ["awesome-typescript-loader"]
-			}
-		]
+	output: {
+		path: helpers.root("public_html/dist"),
+		publicPath: "dist",
+		filename: "[name].[hash].js",
+		chunkFilename: "[id].[hash].chunk.js"
 	},
 
 	plugins: [
-		new webpack.optimize.CommonsChunkPlugin({
-			name: ["app", "vendor", "polyfills"]
+		new webpack.NoEmitOnErrorsPlugin(),
+		new webpack.optimize.UglifyJsPlugin(),
+		new ExtractTextPlugin("[name].[hash].css"),
+		new webpack.DefinePlugin({
+			"process.env": {
+				"ENV": JSON.stringify(ENV)
+			}
 		}),
-
-		new webpack.ProvidePlugin({
-			$: "jquery",
-			jQuery: "jquery",
-			"window.jQuery": "jquery"
-		}),
-
-		new HtmlWebpackPlugin({
-			inject: "head",
-			filename: helpers.root("public_html") + "/index.php",
-			template: helpers.root("webpack") + "/index.php"
+		new webpack.LoaderOptionsPlugin({
+			htmlLoader: {
+				minimize: false // workaround for ng2
+			}
 		})
 	]
-};
+});
