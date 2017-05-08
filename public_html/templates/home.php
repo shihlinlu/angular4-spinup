@@ -4,7 +4,7 @@
 		<div class="row">
 
 			<div class="container center-splash">
-				this is a template
+				Welcome to Angular 4 Spin Up
 			</div>
 		</div>
 	</div>
